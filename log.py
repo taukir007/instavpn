@@ -6,7 +6,7 @@ import logging, pastee, time, sys
 
 class PasteBinLoggingHandler(logging.StreamHandler):
     def __init__(self, *args, **kwargs):
-        self.buff = StringIO.StringIO()
+        self.buff = StringIO()
         logging.StreamHandler.__init__(self, self.buff)
 
     def emit(self, record):
