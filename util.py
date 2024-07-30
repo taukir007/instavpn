@@ -1,4 +1,5 @@
-import platform, os, logging_subprocess, random, string, logging, sys, json, urllib2, fileinput
+import platform, os, logging_subprocess, random, string, logging, sys, json, fileinput
+import urllib.request as urllib2
 
 logger = logging.getLogger()
 
