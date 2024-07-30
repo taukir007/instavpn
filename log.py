@@ -1,16 +1,15 @@
-try:
-    import StringIO 
-except ImportError:
-    from io import StringIO 
-import logging, pastee, time, sys
+import io
+import logging
+import pastee
+import sys
 
 class PasteBinLoggingHandler(logging.StreamHandler):
     def __init__(self, *args, **kwargs):
-        self.buff = StringIO()
-        logging.StreamHandler.__init__(self, self.buff)
+        self.buff = io.StringIO()
+        super().__init__(self.buff)
 
     def emit(self, record):
-        logging.StreamHandler.emit(self, record)
+        super().emit(record)
 
         # If we hit a critical error, we'll paste and quit
         if record.levelno == logging.CRITICAL:
@@ -19,7 +18,6 @@ class PasteBinLoggingHandler(logging.StreamHandler):
             print(" Crash report: {}".format(url))
             print(" Support: https://github.com/sockeye44/instavpn/issues")
             sys.exit(1)
-
 
 def setup_logging():
     # Get root logger and attach some formatters to it
@@ -41,3 +39,9 @@ def setup_logging():
     logger.addHandler(console_handler)
     logger.addHandler(pastebin_handler)
 
+# Example usage:
+if __name__ == "__main__":
+    setup_logging()
+    logger = logging.getLogger()
+    logger.info("This is an info message.")
+    logger.critical("This is a critical message.")
