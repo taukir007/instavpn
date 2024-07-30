@@ -1,5 +1,5 @@
 [ -d instavpn ] && rm -rf instavpn/
-echo "Installing git,cron,python"
+echo "Installing git,cron,python3"
 if [[ ! -z $(which apt-get) ]]; then
     apt-get install -y git cron python3 > /dev/null
     echo "Ok"
@@ -11,4 +11,4 @@ echo "Cloning git repo"
 git clone https://github.com/taukir007/instavpn.git --quiet || exit 1
 echo "Ok"
 cd instavpn
-sudo python install.py
+sudo python3 install.py
