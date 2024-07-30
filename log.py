@@ -1,4 +1,8 @@
-import logging, StringIO, pastee, time, sys
+try:
+    import StringIO 
+except ImportError:
+    from io import StringIO 
+import logging, pastee, time, sys
 
 class PasteBinLoggingHandler(logging.StreamHandler):
     def __init__(self, *args, **kwargs):
