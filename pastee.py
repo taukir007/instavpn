@@ -177,10 +177,10 @@ def main():
     if filenames:
         # paste from multiple files
         for filename in filenames:
-            print client.paste_file(filename, lexer=lexer, ttl=ttl, key=key)
+            print (client.paste_file(filename, lexer=lexer, ttl=ttl, key=key))
     else:
         # paste from stdin
-        print client.paste(sys.stdin.read(), lexer=lexer, ttl=ttl, key=key)
+        print (client.paste(sys.stdin.read(), lexer=lexer, ttl=ttl, key=key))
 
 
 if __name__ == "__main__":
