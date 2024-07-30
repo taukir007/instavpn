@@ -1,6 +1,8 @@
 __version__ = "0.1.1"
 
-import log, util, logging
+import log
+import util
+import logging
 
 log.setup_logging()
 
@@ -11,7 +13,7 @@ def main():
     if util.check_os():
         logger.info("OK")
     else:
-        logger.critical("You must use Ubuntu 14.04")
+        logger.critical("You must use Ubuntu 24.04")
 
     if util.not_sudo():
         logger.critical("Restart script as root")
@@ -54,4 +56,5 @@ def main():
 
     util.info()
 
-main()
+if __name__ == "__main__":
+    main()
