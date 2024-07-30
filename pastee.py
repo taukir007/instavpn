@@ -1,19 +1,17 @@
-#!/usr/bin/python
+#!/usr/bin/python3
 import http.client as httplib
-import optparse
+import argparse
 import os
 import sys
 import threading
 import urllib
 import urllib.parse as urlparse
 
-
 __version__ = (0, 1, 0)
 
 PASTEE_URL = "https://pastee.org"
 DEFAULT_LEXER = "text"
 DEFAULT_TTL = 30  # days
-
 
 class Paste:
     """Class representing a paste that has been submitted."""
@@ -30,12 +28,8 @@ class Paste:
         self.lexer = lexer
         self.url = url
 
-    def __unicode__(self):
-        return self.url
-
     def __str__(self):
-        return str(self.__unicode__)
-
+        return self.url
 
 class PasteClient:
     """Pasting client for a Pastee application.
@@ -53,8 +47,8 @@ class PasteClient:
           url: URL to Pastee installation (defaults to https://pastee.org)
         """
         parse = urlparse.urlsplit(url)
-        self._scheme = parse[0]
-        self._netloc = parse[1]
+        self._scheme = parse.scheme
+        self._netloc = parse.netloc
         self._lock = threading.Semaphore()
 
     def paste(self, content, lexer=None, ttl=None, key=None):
@@ -90,7 +84,7 @@ class PasteClient:
             params["key"] = key
 
         self._lock.acquire()
-        self._conn.request("POST", "/submit", urllib.urlencode(params), headers)
+        self._conn.request("POST", "/submit", urllib.parse.urlencode(params), headers)
         response = self._conn.getresponse()
         self._lock.release()
         return self._make_paste(response, content, lexer)
@@ -111,10 +105,9 @@ class PasteClient:
         _, ext = os.path.splitext(filename)
         if lexer is None and ext:
             lexer = ext[1:]  # remove leading period first
-        # TODO(ms): need exception handling here
-        fd = open(filename, "r")
-        content = fd.read()
-        fd.close()
+        # TODO: need exception handling here
+        with open(filename, "r") as fd:
+            content = fd.read()
         return self.paste(content, lexer=lexer, ttl=ttl, key=key)
 
     def _make_paste(self, response, content, lexer):
@@ -126,14 +119,14 @@ class PasteClient:
     @staticmethod
     def _clean_url(url):
         p = urlparse.urlsplit(url)
-        scheme = p[0]
-        netloc_split = p[1].split(":")
+        scheme = p.scheme
+        netloc_split = p.netloc.split(":")
         hostname = netloc_split[0]
         if len(netloc_split) > 1:
             port = int(netloc_split[1])
         else:
-            port = scheme == "https" and 443 or 80
-        path = p[2]
+            port = 443 if scheme == "https" else 80
+        path = p.path
         port_str = ""
         if port != 80 and scheme == "http":
             port_str = ":%d" % port
@@ -141,32 +134,32 @@ class PasteClient:
             port_str = ":%d" % port
         return "%s://%s%s%s" % (scheme, hostname, port_str, path)
 
-
 def die_with_error(message):
     """Print a message and exit with exit code 1.
 
     Args:
       message: message to print before exiting
     """
-    print ("error: %s" % message)
+    print("error: %s" % message)
     sys.exit(1)
 
-
 def main():
-    parser = optparse.OptionParser()
-    parser.add_option("-l", "--lexer", dest="lexer", metavar="LEXERNAME",
-                      help=("Force use of a particular lexer (i.e. c, py). "
-                            "This defaults to the extension of the supplied "
-                            "filenames, or 'text' if pasting from stdin."))
-    parser.add_option("-t", "--ttl", dest="ttl", metavar="DAYS",
-                      help="Number of days before the paste will expire.")
-    parser.add_option("-k", "--key", dest="key", metavar="PASSPHRASE",
-                      help="Encrypt pastes with this key.")
-    (options, filenames) = parser.parse_args()
-    lexer = options.lexer
-    key = options.key
+    parser = argparse.ArgumentParser(description="Create a new paste on Pastee.")
+    parser.add_argument("-l", "--lexer", dest="lexer", metavar="LEXERNAME",
+                        help=("Force use of a particular lexer (i.e. c, py). "
+                              "This defaults to the extension of the supplied "
+                              "filenames, or 'text' if pasting from stdin."))
+    parser.add_argument("-t", "--ttl", dest="ttl", metavar="DAYS",
+                        help="Number of days before the paste will expire.")
+    parser.add_argument("-k", "--key", dest="key", metavar="PASSPHRASE",
+                        help="Encrypt pastes with this key.")
+    parser.add_argument("filenames", metavar="FILE", nargs="*",
+                        help="File(s) to paste. If empty, read from stdin.")
+    args = parser.parse_args()
+    lexer = args.lexer
+    key = args.key
     try:
-        ttl = float(options.ttl)
+        ttl = float(args.ttl)
     except ValueError:
         die_with_error("floating point number must be passed for TTL")
     except TypeError:
@@ -174,14 +167,13 @@ def main():
 
     client = PasteClient()
 
-    if filenames:
+    if args.filenames:
         # paste from multiple files
-        for filename in filenames:
-            print (client.paste_file(filename, lexer=lexer, ttl=ttl, key=key))
+        for filename in args.filenames:
+            print(client.paste_file(filename, lexer=lexer, ttl=ttl, key=key))
     else:
         # paste from stdin
-        print (client.paste(sys.stdin.read(), lexer=lexer, ttl=ttl, key=key))
-
+        print(client.paste(sys.stdin.read(), lexer=lexer, ttl=ttl, key=key))
 
 if __name__ == "__main__":
     main()
