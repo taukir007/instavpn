@@ -148,7 +148,7 @@ def die_with_error(message):
     Args:
       message: message to print before exiting
     """
-    print "error: %s" % message
+    print ("error: %s" % message)
     sys.exit(1)
 
 
