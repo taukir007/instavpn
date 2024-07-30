@@ -5,7 +5,7 @@ import os
 import sys
 import threading
 import urllib
-import urlparse
+import urllib.parse as urlparse
 
 
 __version__ = (0, 1, 0)
