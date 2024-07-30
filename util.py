@@ -103,7 +103,7 @@ def setup_vpn():
 
     try:
         for line in fileinput.input("/etc/default/ufw", inplace=True):
-            print line.replace('DEFAULT_FORWARD_POLICY="DROP"', 'DEFAULT_FORWARD_POLICY="ACCEPT"'),
+            print (line.replace('DEFAULT_FORWARD_POLICY="DROP"', 'DEFAULT_FORWARD_POLICY="ACCEPT"')),
         run_command("service ufw restart")
     except OSError as e:
         logger.warn('ufw not found')
