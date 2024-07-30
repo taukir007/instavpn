@@ -1,5 +1,5 @@
 #!/usr/bin/python
-import httplib
+import http.client as httplib
 import optparse
 import os
 import sys
