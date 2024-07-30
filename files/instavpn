@@ -1,6 +1,12 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 from __future__ import with_statement
-import argparse, re, subprocess, os, fileinput, json
+import argparse
+import re
+import subprocess
+import os
+import fileinput
+import json
+import logging
 
 def init_argparse():
     parser = argparse.ArgumentParser(description="%(prog)s", prog="Instavpn CLI")
@@ -24,7 +30,6 @@ def init_argparse():
     _web_set.add_argument('username')
     _web_set.add_argument('password')
 
-
     return parser.parse_args()
 
 
@@ -39,8 +44,8 @@ class IO:
         with open('/etc/ppp/chap-secrets', 'r') as f:
             strings = f.read().split('\n')
 
-            if strings[len(strings) - 1] == '':
-                del strings[len(strings) - 1]  # remove empty string
+            if strings[-1] == '':
+                strings.pop()  # remove empty string
 
             self.users = {}
 
@@ -55,11 +60,11 @@ class IO:
             self.psk = string[1]
 
     def __restart(self):
-        print 'Restarting VPN server...'
+        print('Restarting VPN server...')
         if subprocess.call("/etc/init.d/ipsec restart && /etc/init.d/xl2tpd restart", shell=True) == 0:
-            print 'OK!'
+            print('OK!')
         else:
-            print 'Error!'
+            print('Error!')
 
     def save(self):
 
@@ -95,7 +100,7 @@ class Util:
             return _list[ind]
 
         for i in _list:
-            print "|{0:<{col1}}|{1:<{col2}}|".format(i, f(i), col1=width_col1, col2=width_col2)
+            print("|{0:<{col1}}|{1:<{col2}}|".format(i, f(i), col1=width_col1, col2=width_col2))
 
     @staticmethod
     def __regex_check(string):
@@ -103,69 +108,69 @@ class Util:
         return re.match(regexp, string) is not None
 
     def psk_get(self):
-        print self.__io.psk
+        print(self.__io.psk)
 
     def psk_set(self):
         if self.__regex_check(self.__args.key):
             self.__io.psk = self.__args.key
             self.__io.save()
         else:
-            print 'All fields must contain alphanumeric characters only and have length between 6 and 32'
+            print('All fields must contain alphanumeric characters only and have length between 6 and 32')
 
 
     def user_get(self):
-        if self.__io.users.has_key(self.__args.username):
-            print self.__io.users[self.__args.username]
+        if self.__args.username in self.__io.users:
+            print(self.__io.users[self.__args.username])
         else:
-            print 'No such user'
+            print('No such user')
 
     def user_set(self):
         if self.__regex_check(self.__args.username) and self.__regex_check(self.__args.password):
             self.__io.users[self.__args.username] = self.__args.password
             self.__io.save()
         else:
-            print 'All fields must contain alphanumeric characters only and have length between 6 and 32'
+            print('All fields must contain alphanumeric characters only and have length between 6 and 32')
 
     def user_delete(self):
-        if self.__io.users.has_key(self.__args.username):
+        if self.__args.username in self.__io.users:
             del self.__io.users[self.__args.username]
             self.__io.save()
         else:
-            print 'No such user'
+            print('No such user')
 
     def user_list(self):
-        print
+        print()
         self.__users_table()
-        print
+        print()
 
     def list(self):
-        print
-        print 'Pre-shared key: ', self.__io.psk
-        print
+        print()
+        print('Pre-shared key: ', self.__io.psk)
+        print()
         self.__users_table()
-        print
-        print 'Web UI credentials:'
+        print()
+        print('Web UI credentials:')
         with open('/opt/instavpn/server/credentials.json') as f:
             json_data = json.loads(f.read())
-            print 'Username - ', json_data['admin']['login']
-            print 'Password - ', json_data['admin']['password']
+            print('Username - ', json_data['admin']['login'])
+            print('Password - ', json_data['admin']['password'])
 
     def web(self):
         if self.__args.mode is not None:
             if self.__args.mode == 'on':
                 for line in fileinput.input("/etc/init/instavpn.conf", inplace=True):
-                    print line.replace('manual', '#manual'),
+                    print(line.replace('manual', '#manual'), end='')
                 if subprocess.call("start instavpn", shell=True) == 0:
-                    print 'OK!'
+                    print('OK!')
                 else:
-                    print 'Error!'
+                    print('Error!')
             elif self.__args.mode == 'off':
                 for line in fileinput.input("/etc/init/instavpn.conf", inplace=True):
-                    print line.replace('#manual', 'manual'),
+                    print(line.replace('#manual', 'manual'), end='')
                 if subprocess.call("stop instavpn", shell=True) == 0:
-                    print 'OK!'
+                    print('OK!')
                 else:
-                    print 'Error!'
+                    print('Error!')
 
 
     def web_set(self):
@@ -178,7 +183,7 @@ class Util:
                 f.write(json.dumps(json_data))
                 f.truncate()
         else:
-            print 'All fields must contain alphanumeric characters only and have length between 6 and 32'
+            print('All fields must contain alphanumeric characters only and have length between 6 and 32')
 
     @staticmethod
     def stat():
@@ -225,5 +230,4 @@ def main():
 if os.getuid() == 0:
     main()
 else:
-    print "I cannot run as a mortal. Use 'sudo instavpn <args>'"
-
+    print("I cannot run as a mortal. Use 'sudo instavpn <args>'")
